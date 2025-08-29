@@ -1,8 +1,6 @@
 # Translation Service
 
 [![CI](https://github.com/henok321/translation-service/actions/workflows/CI.yml/badge.svg)](https://github.com/henok321/translation-service/actions/workflows/CI.yml)
-[![Deploy](https://github.com/henok321/translation-service/actions/workflows/deploy.yml/badge.svg)](https://github.com/henok321/translation-service/actions/workflows/deploy.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=henok321_translation-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=henok321_translation-service)
 
 ## Synopsis
 
@@ -23,6 +21,7 @@ The project uses `goose` for database migrations. Migrations are located in the 
 Ensure the following dependencies are installed:
 
 - [Go](https://go.dev/doc/install)
+- [Protobuf](https://protobuf.dev/installation/)
 - [Docker](https://docs.docker.com/get-docker/)
 - [pre-commit](https://pre-commit.com/) (`pip install pre-commit`)
 - [Goose](https://github.com/pressly/goose) (`go install github.com/pressly/goose/v3/cmd/goose@latest`)

@@ -1,0 +1,41 @@
+syntax = "proto3";
+package proto.translation.v1;
+
+option go_package = "github.com/henok321/translation-service/pb/translation/v1;apiv1";
+
+enum Locale {
+  LOCALE_UNSPECIFIED = 0;
+  LOCALE_DE_DE = 1;
+  LOCALE_EN_GB = 2;
+}
+
+message Translation {
+  string language_key = 1;
+  Locale locale = 2;
+  string translation = 3;
+}
+
+message TranslationList {
+  repeated Translation translations = 1;
+}
+
+message LocaleGroup {
+  Locale locale = 1;
+  TranslationList translations = 2;
+}
+
+message GroupedTranslations {
+  repeated LocaleGroup groups = 1;
+}
+
+message GetTranslationByKeyRequest {
+  string language_key = 1;
+}
+
+message GetTranslationByKeyResponse {
+  Translation translation = 1;
+}
+
+service TranslationService {
+  rpc GetTranslationByKey(GetTranslationByKeyRequest) returns (GetTranslationByKeyResponse);
+}

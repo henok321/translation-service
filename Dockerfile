@@ -5,14 +5,9 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY ./api ./api
-COPY ./cmd ./cmd
-COPY ./internal ./internal
-COPY ./pkg ./pkg
+COPY . .
 
-RUN CGO_ENABLED=0 GOARCH=amd64 GOOS=linux \
-    go build -o translation-service \
-    -a -ldflags="-s -w -extldflags '-static'" ./cmd/
+RUN make build
 
 FROM debian:bookworm-slim
 

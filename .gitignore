@@ -11,6 +11,9 @@
 go.work
 go.work.sum
 
+# protobuf
+pb
+
 # env file
 .env
 
