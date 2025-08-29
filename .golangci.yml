@@ -1,0 +1,73 @@
+version: "2"
+run:
+  tests: true
+
+linters:
+  default: "none"
+  enable:
+    # current defaults
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    # custom
+    - asciicheck
+    - errorlint
+    - bodyclose
+    - canonicalheader
+    - gocritic
+    - gosec
+    - loggercheck
+    - nilerr
+    - protogetter
+    - reassign
+    - sloglint
+    - testifylint
+    - unconvert
+    - godox
+    - iface
+    - revive
+
+  settings:
+    gocritic:
+      disable-all: false
+    gocyclo:
+      min-complexity: 15
+    godox:
+      keywords:
+        - TODO
+    govet:
+      disable-all: false
+  exclusions:
+    generated: strict
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - gofumpt
+  settings:
+    gofmt:
+      simplify: true
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    generated: strict
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

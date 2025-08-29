@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - ".vscode/**"
+  pull_request:
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - ".vscode/**"
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository.go
+        uses: actions/checkout@v5
+
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache-dependency-path: "**/go.sum"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache-dependency-path: "**/go.sum"
+      - name: Start Docker
+        run: sudo systemctl start docker
+      - name: Run Tests
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
+        run: go test -v ./...
