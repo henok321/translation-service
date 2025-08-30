@@ -1,18 +1,15 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"log/slog"
-	"net/http"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/henok321/translation-service/api/logging"
-	"github.com/henok321/translation-service/api/routes"
-	"github.com/rs/cors"
+	"github.com/henok321/translation-service/api/handlers"
+	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
+	"google.golang.org/grpc"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,11 +19,11 @@ func init() {
 	switch os.Getenv("ENVIRONMENT") {
 	case "local":
 		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: false, Level: slog.LevelDebug})
-		slog.SetDefault(slog.New(&logging.ContextHandler{Handler: logHandler}))
+		slog.SetDefault(slog.New(logHandler))
 		slog.Info("Logging initialized", "logLevel", "debug")
 	default:
 		logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: false, Level: slog.LevelInfo})
-		slog.SetDefault(slog.New(&logging.ContextHandler{Handler: logHandler}))
+		slog.SetDefault(slog.New(logHandler))
 		slog.Info("Logging initialized", "logLevel", "info")
 	}
 }
@@ -47,38 +44,42 @@ func main() {
 		exitCode = 1
 		return
 	}
+	lis, err := net.Listen("tcp", "localhost:50051")
 
-	router := routes.SetupRouter(database)
+	defer func(lis net.Listener) {
+		err := lis.Close()
+		if err != nil {
+			slog.Error("Closing listener failed", "error", err)
+			exitCode = 1
+			return
+		}
+	}(lis)
 
-	mainServer := &http.Server{
-		Addr:         ":8080",
-		Handler:      cors.AllowAll().Handler(router),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  15 * time.Second,
+	if err != nil {
+		slog.Error("Starting application failed, cannot listen on port", "port", 50051, "error", err)
+		exitCode = 1
+		return
 	}
+
+	grpcServer := grpc.NewServer()
+	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationHandler(database))
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		slog.Info("Starting main server", "port", 8080)
-
-		if err := mainServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Main server error", "error", err)
-			os.Exit(1)
+		slog.Info("Starting grpc server", "address", "localhost:50051")
+		if err := grpcServer.Serve(lis); err != nil {
+			slog.Error("Starting grpc server failed", "error", err)
+			exitCode = 1
+			return
 		}
 	}()
 
 	<-sigChan
 	slog.Info("Shutdown signal received, shutting down gracefully...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	if err := mainServer.Shutdown(ctx); err != nil {
-		slog.Error("Main server shutdown failed", "error", err)
-	}
+	grpcServer.GracefulStop()
 
 	slog.Info("Servers exited")
 }

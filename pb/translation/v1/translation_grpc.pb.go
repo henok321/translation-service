@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TranslationService_GetTranslationByKey_FullMethodName = "/proto.translation.v1.TranslationService/GetTranslationByKey"
+	TranslationService_GetTranslationByKeyAndLocale_FullMethodName = "/proto.translation.v1.TranslationService/GetTranslationByKeyAndLocale"
 )
 
 // TranslationServiceClient is the client API for TranslationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TranslationServiceClient interface {
-	GetTranslationByKey(ctx context.Context, in *GetTranslationByKeyRequest, opts ...grpc.CallOption) (*GetTranslationByKeyResponse, error)
+	GetTranslationByKeyAndLocale(ctx context.Context, in *GetTranslationByKeyAndLocaleRequest, opts ...grpc.CallOption) (*GetTranslationByKeyAndLocaleResponse, error)
 }
 
 type translationServiceClient struct {
@@ -37,10 +37,10 @@ func NewTranslationServiceClient(cc grpc.ClientConnInterface) TranslationService
 	return &translationServiceClient{cc}
 }
 
-func (c *translationServiceClient) GetTranslationByKey(ctx context.Context, in *GetTranslationByKeyRequest, opts ...grpc.CallOption) (*GetTranslationByKeyResponse, error) {
+func (c *translationServiceClient) GetTranslationByKeyAndLocale(ctx context.Context, in *GetTranslationByKeyAndLocaleRequest, opts ...grpc.CallOption) (*GetTranslationByKeyAndLocaleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetTranslationByKeyResponse)
-	err := c.cc.Invoke(ctx, TranslationService_GetTranslationByKey_FullMethodName, in, out, cOpts...)
+	out := new(GetTranslationByKeyAndLocaleResponse)
+	err := c.cc.Invoke(ctx, TranslationService_GetTranslationByKeyAndLocale_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *translationServiceClient) GetTranslationByKey(ctx context.Context, in *
 // All implementations must embed UnimplementedTranslationServiceServer
 // for forward compatibility.
 type TranslationServiceServer interface {
-	GetTranslationByKey(context.Context, *GetTranslationByKeyRequest) (*GetTranslationByKeyResponse, error)
+	GetTranslationByKeyAndLocale(context.Context, *GetTranslationByKeyAndLocaleRequest) (*GetTranslationByKeyAndLocaleResponse, error)
 	mustEmbedUnimplementedTranslationServiceServer()
 }
 
@@ -62,8 +62,8 @@ type TranslationServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTranslationServiceServer struct{}
 
-func (UnimplementedTranslationServiceServer) GetTranslationByKey(context.Context, *GetTranslationByKeyRequest) (*GetTranslationByKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetTranslationByKey not implemented")
+func (UnimplementedTranslationServiceServer) GetTranslationByKeyAndLocale(context.Context, *GetTranslationByKeyAndLocaleRequest) (*GetTranslationByKeyAndLocaleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTranslationByKeyAndLocale not implemented")
 }
 func (UnimplementedTranslationServiceServer) mustEmbedUnimplementedTranslationServiceServer() {}
 func (UnimplementedTranslationServiceServer) testEmbeddedByValue()                            {}
@@ -86,20 +86,20 @@ func RegisterTranslationServiceServer(s grpc.ServiceRegistrar, srv TranslationSe
 	s.RegisterService(&TranslationService_ServiceDesc, srv)
 }
 
-func _TranslationService_GetTranslationByKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTranslationByKeyRequest)
+func _TranslationService_GetTranslationByKeyAndLocale_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTranslationByKeyAndLocaleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TranslationServiceServer).GetTranslationByKey(ctx, in)
+		return srv.(TranslationServiceServer).GetTranslationByKeyAndLocale(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TranslationService_GetTranslationByKey_FullMethodName,
+		FullMethod: TranslationService_GetTranslationByKeyAndLocale_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TranslationServiceServer).GetTranslationByKey(ctx, req.(*GetTranslationByKeyRequest))
+		return srv.(TranslationServiceServer).GetTranslationByKeyAndLocale(ctx, req.(*GetTranslationByKeyAndLocaleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var TranslationService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TranslationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetTranslationByKey",
-			Handler:    _TranslationService_GetTranslationByKey_Handler,
+			MethodName: "GetTranslationByKeyAndLocale",
+			Handler:    _TranslationService_GetTranslationByKeyAndLocale_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -28,14 +28,15 @@ message GroupedTranslations {
   repeated LocaleGroup groups = 1;
 }
 
-message GetTranslationByKeyRequest {
+message GetTranslationByKeyAndLocaleRequest {
   string language_key = 1;
+  Locale locale = 2;
 }
 
-message GetTranslationByKeyResponse {
+message GetTranslationByKeyAndLocaleResponse {
   Translation translation = 1;
 }
 
 service TranslationService {
-  rpc GetTranslationByKey(GetTranslationByKeyRequest) returns (GetTranslationByKeyResponse);
+  rpc GetTranslationByKeyAndLocale(GetTranslationByKeyAndLocaleRequest) returns (GetTranslationByKeyAndLocaleResponse);
 }

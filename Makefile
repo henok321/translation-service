@@ -27,7 +27,7 @@ check-deps:
 
 proto:
 	@echo "Generating protobuf model..."
-	@command rm -r $(GO_OUT_DIR)
+	@command rm -rf $(GO_OUT_DIR)
 	@command mkdir -p $(GO_OUT_DIR)
 	@command protoc -I $(PROTO_SRC_DIR) \
 	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \

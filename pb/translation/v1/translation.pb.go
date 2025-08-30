@@ -270,27 +270,28 @@ func (x *GroupedTranslations) GetGroups() []*LocaleGroup {
 	return nil
 }
 
-type GetTranslationByKeyRequest struct {
+type GetTranslationByKeyAndLocaleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LanguageKey   string                 `protobuf:"bytes,1,opt,name=language_key,json=languageKey,proto3" json:"language_key,omitempty"`
+	Locale        Locale                 `protobuf:"varint,2,opt,name=locale,proto3,enum=proto.translation.v1.Locale" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetTranslationByKeyRequest) Reset() {
-	*x = GetTranslationByKeyRequest{}
+func (x *GetTranslationByKeyAndLocaleRequest) Reset() {
+	*x = GetTranslationByKeyAndLocaleRequest{}
 	mi := &file_translation_v1_translation_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetTranslationByKeyRequest) String() string {
+func (x *GetTranslationByKeyAndLocaleRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetTranslationByKeyRequest) ProtoMessage() {}
+func (*GetTranslationByKeyAndLocaleRequest) ProtoMessage() {}
 
-func (x *GetTranslationByKeyRequest) ProtoReflect() protoreflect.Message {
+func (x *GetTranslationByKeyAndLocaleRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_translation_v1_translation_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -302,39 +303,46 @@ func (x *GetTranslationByKeyRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetTranslationByKeyRequest.ProtoReflect.Descriptor instead.
-func (*GetTranslationByKeyRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetTranslationByKeyAndLocaleRequest.ProtoReflect.Descriptor instead.
+func (*GetTranslationByKeyAndLocaleRequest) Descriptor() ([]byte, []int) {
 	return file_translation_v1_translation_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetTranslationByKeyRequest) GetLanguageKey() string {
+func (x *GetTranslationByKeyAndLocaleRequest) GetLanguageKey() string {
 	if x != nil {
 		return x.LanguageKey
 	}
 	return ""
 }
 
-type GetTranslationByKeyResponse struct {
+func (x *GetTranslationByKeyAndLocaleRequest) GetLocale() Locale {
+	if x != nil {
+		return x.Locale
+	}
+	return Locale_LOCALE_UNSPECIFIED
+}
+
+type GetTranslationByKeyAndLocaleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Translation   *Translation           `protobuf:"bytes,1,opt,name=translation,proto3" json:"translation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetTranslationByKeyResponse) Reset() {
-	*x = GetTranslationByKeyResponse{}
+func (x *GetTranslationByKeyAndLocaleResponse) Reset() {
+	*x = GetTranslationByKeyAndLocaleResponse{}
 	mi := &file_translation_v1_translation_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetTranslationByKeyResponse) String() string {
+func (x *GetTranslationByKeyAndLocaleResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetTranslationByKeyResponse) ProtoMessage() {}
+func (*GetTranslationByKeyAndLocaleResponse) ProtoMessage() {}
 
-func (x *GetTranslationByKeyResponse) ProtoReflect() protoreflect.Message {
+func (x *GetTranslationByKeyAndLocaleResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_translation_v1_translation_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -346,12 +354,12 @@ func (x *GetTranslationByKeyResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetTranslationByKeyResponse.ProtoReflect.Descriptor instead.
-func (*GetTranslationByKeyResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetTranslationByKeyAndLocaleResponse.ProtoReflect.Descriptor instead.
+func (*GetTranslationByKeyAndLocaleResponse) Descriptor() ([]byte, []int) {
 	return file_translation_v1_translation_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetTranslationByKeyResponse) GetTranslation() *Translation {
+func (x *GetTranslationByKeyAndLocaleResponse) GetTranslation() *Translation {
 	if x != nil {
 		return x.Translation
 	}
@@ -373,17 +381,18 @@ const file_translation_v1_translation_proto_rawDesc = "" +
 	"\x06locale\x18\x01 \x01(\x0e2\x1c.proto.translation.v1.LocaleR\x06locale\x12I\n" +
 	"\ftranslations\x18\x02 \x01(\v2%.proto.translation.v1.TranslationListR\ftranslations\"P\n" +
 	"\x13GroupedTranslations\x129\n" +
-	"\x06groups\x18\x01 \x03(\v2!.proto.translation.v1.LocaleGroupR\x06groups\"?\n" +
-	"\x1aGetTranslationByKeyRequest\x12!\n" +
-	"\flanguage_key\x18\x01 \x01(\tR\vlanguageKey\"b\n" +
-	"\x1bGetTranslationByKeyResponse\x12C\n" +
+	"\x06groups\x18\x01 \x03(\v2!.proto.translation.v1.LocaleGroupR\x06groups\"~\n" +
+	"#GetTranslationByKeyAndLocaleRequest\x12!\n" +
+	"\flanguage_key\x18\x01 \x01(\tR\vlanguageKey\x124\n" +
+	"\x06locale\x18\x02 \x01(\x0e2\x1c.proto.translation.v1.LocaleR\x06locale\"k\n" +
+	"$GetTranslationByKeyAndLocaleResponse\x12C\n" +
 	"\vtranslation\x18\x01 \x01(\v2!.proto.translation.v1.TranslationR\vtranslation*D\n" +
 	"\x06Locale\x12\x16\n" +
 	"\x12LOCALE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fLOCALE_DE_DE\x10\x01\x12\x10\n" +
-	"\fLOCALE_EN_GB\x10\x022\x90\x01\n" +
-	"\x12TranslationService\x12z\n" +
-	"\x13GetTranslationByKey\x120.proto.translation.v1.GetTranslationByKeyRequest\x1a1.proto.translation.v1.GetTranslationByKeyResponseBAZ?github.com/henok321/translation-service/pb/translation/v1;apiv1b\x06proto3"
+	"\fLOCALE_EN_GB\x10\x022\xac\x01\n" +
+	"\x12TranslationService\x12\x95\x01\n" +
+	"\x1cGetTranslationByKeyAndLocale\x129.proto.translation.v1.GetTranslationByKeyAndLocaleRequest\x1a:.proto.translation.v1.GetTranslationByKeyAndLocaleResponseBAZ?github.com/henok321/translation-service/pb/translation/v1;apiv1b\x06proto3"
 
 var (
 	file_translation_v1_translation_proto_rawDescOnce sync.Once
@@ -400,13 +409,13 @@ func file_translation_v1_translation_proto_rawDescGZIP() []byte {
 var file_translation_v1_translation_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_translation_v1_translation_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_translation_v1_translation_proto_goTypes = []any{
-	(Locale)(0),                         // 0: proto.translation.v1.Locale
-	(*Translation)(nil),                 // 1: proto.translation.v1.Translation
-	(*TranslationList)(nil),             // 2: proto.translation.v1.TranslationList
-	(*LocaleGroup)(nil),                 // 3: proto.translation.v1.LocaleGroup
-	(*GroupedTranslations)(nil),         // 4: proto.translation.v1.GroupedTranslations
-	(*GetTranslationByKeyRequest)(nil),  // 5: proto.translation.v1.GetTranslationByKeyRequest
-	(*GetTranslationByKeyResponse)(nil), // 6: proto.translation.v1.GetTranslationByKeyResponse
+	(Locale)(0),                                  // 0: proto.translation.v1.Locale
+	(*Translation)(nil),                          // 1: proto.translation.v1.Translation
+	(*TranslationList)(nil),                      // 2: proto.translation.v1.TranslationList
+	(*LocaleGroup)(nil),                          // 3: proto.translation.v1.LocaleGroup
+	(*GroupedTranslations)(nil),                  // 4: proto.translation.v1.GroupedTranslations
+	(*GetTranslationByKeyAndLocaleRequest)(nil),  // 5: proto.translation.v1.GetTranslationByKeyAndLocaleRequest
+	(*GetTranslationByKeyAndLocaleResponse)(nil), // 6: proto.translation.v1.GetTranslationByKeyAndLocaleResponse
 }
 var file_translation_v1_translation_proto_depIdxs = []int32{
 	0, // 0: proto.translation.v1.Translation.locale:type_name -> proto.translation.v1.Locale
@@ -414,14 +423,15 @@ var file_translation_v1_translation_proto_depIdxs = []int32{
 	0, // 2: proto.translation.v1.LocaleGroup.locale:type_name -> proto.translation.v1.Locale
 	2, // 3: proto.translation.v1.LocaleGroup.translations:type_name -> proto.translation.v1.TranslationList
 	3, // 4: proto.translation.v1.GroupedTranslations.groups:type_name -> proto.translation.v1.LocaleGroup
-	1, // 5: proto.translation.v1.GetTranslationByKeyResponse.translation:type_name -> proto.translation.v1.Translation
-	5, // 6: proto.translation.v1.TranslationService.GetTranslationByKey:input_type -> proto.translation.v1.GetTranslationByKeyRequest
-	6, // 7: proto.translation.v1.TranslationService.GetTranslationByKey:output_type -> proto.translation.v1.GetTranslationByKeyResponse
-	7, // [7:8] is the sub-list for method output_type
-	6, // [6:7] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0, // 5: proto.translation.v1.GetTranslationByKeyAndLocaleRequest.locale:type_name -> proto.translation.v1.Locale
+	1, // 6: proto.translation.v1.GetTranslationByKeyAndLocaleResponse.translation:type_name -> proto.translation.v1.Translation
+	5, // 7: proto.translation.v1.TranslationService.GetTranslationByKeyAndLocale:input_type -> proto.translation.v1.GetTranslationByKeyAndLocaleRequest
+	6, // 8: proto.translation.v1.TranslationService.GetTranslationByKeyAndLocale:output_type -> proto.translation.v1.GetTranslationByKeyAndLocaleResponse
+	8, // [8:9] is the sub-list for method output_type
+	7, // [7:8] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_translation_v1_translation_proto_init() }
