@@ -4,7 +4,7 @@
 
 ## Synopsis
 
-A golang-based translation service.
+A golang-based translation service to learn more about gRPC.
 
 ## CI/CD
 
