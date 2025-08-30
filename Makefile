@@ -61,7 +61,7 @@ update:
 	go get -u ./...
 	go mod tidy
 
-test: lint
+test:
 	@echo "Running tests..."
 	go test -v ./...
 
