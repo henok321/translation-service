@@ -7,6 +7,8 @@ import (
 
 	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
 )
 
 func TestTranslation(t *testing.T) {
@@ -28,14 +30,45 @@ func TestTranslation(t *testing.T) {
 
 	defer teardownServer()
 
-	result, err := client.GetTranslationByKeyAndLocale(context.Background(), &apiv1.GetTranslationByKeyAndLocaleRequest{
-		LanguageKey: "test_lk",
-		Locale:      apiv1.Locale_LOCALE_EN_GB,
-	})
-	if err != nil {
-		t.Fatalf("Failed to get translation: %v", err)
+	testCases := map[string]struct {
+		languageKey string
+		locale      apiv1.Locale
+		expectedErr codes.Code
+	}{
+		"valid translation": {
+			languageKey: "test_lk_0",
+			locale:      apiv1.Locale_LOCALE_EN_GB,
+			expectedErr: codes.OK,
+		},
+		"unknown translation": {
+			languageKey: "invalid_key",
+			locale:      apiv1.Locale_LOCALE_EN_GB,
+			expectedErr: codes.NotFound,
+		},
+		"invalid locale": {
+			languageKey: "",
+			locale:      apiv1.Locale_LOCALE_DE_DE,
+			expectedErr: codes.InvalidArgument,
+		},
 	}
 
-	assert.Equal(t, "test_lk", result.GetTranslation().GetLanguageKey())
-	assert.Equal(t, "Translation Service", result.GetTranslation().GetTranslation())
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, err := client.GetTranslationByKeyAndLocale(context.Background(), &apiv1.GetTranslationByKeyAndLocaleRequest{
+				LanguageKey: tc.languageKey,
+				Locale:      tc.locale,
+			})
+
+			if tc.expectedErr != codes.OK {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err, "Failed to get translation")
+			assert.Equal(t, tc.languageKey, result.GetTranslation().GetLanguageKey())
+			if tc.languageKey == "test_lk_0" {
+				assert.Equal(t, "Translation Service", result.GetTranslation().GetTranslation())
+			}
+		})
+	}
 }

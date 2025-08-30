@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
 	"github.com/henok321/translation-service/pkg/translation"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
 
@@ -19,14 +22,21 @@ func NewTranslationHandler(db *gorm.DB) apiv1.TranslationServiceServer {
 }
 
 func (t translationHandler) GetTranslationByKeyAndLocale(_ context.Context, request *apiv1.GetTranslationByKeyAndLocaleRequest) (*apiv1.GetTranslationByKeyAndLocaleResponse, error) {
+	if request.GetLanguageKey() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "language key is required")
+	}
+
 	locale, err := mapToDBLocale(request.GetLocale())
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid locale: %v", err)
 	}
 
 	result, err := t.repo.GetTranslationByKey(request.GetLanguageKey(), locale)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Errorf(codes.NotFound, "translation not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to get translation: %v", err)
 	}
 
 	resp := &apiv1.GetTranslationByKeyAndLocaleResponse{
