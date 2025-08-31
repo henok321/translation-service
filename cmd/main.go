@@ -6,10 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/henok321/translation-service/api/handlers"
 	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,7 +22,7 @@ import (
 func init() {
 	switch os.Getenv("ENVIRONMENT") {
 	case "local":
-		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: false, Level: slog.LevelDebug})
+		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true, Level: slog.LevelDebug})
 		slog.SetDefault(slog.New(logHandler))
 		slog.Info("Logging initialized", "logLevel", "debug")
 	default:
@@ -61,11 +65,47 @@ func main() {
 		return
 	}
 
-	grpcServer := grpc.NewServer()
-	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationHandler(database))
+	healthServer := health.NewServer()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+
+	stopHealth := make(chan struct{})
+	go func() {
+		sqlDB, _ := database.DB()
+		if err := sqlDB.Ping(); err == nil {
+			slog.Info("Database is up and running")
+			healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_SERVING)
+		} else {
+			slog.Error("Database is down", "error", err)
+			healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+		}
+
+		t := time.NewTicker(5 * time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				if err := sqlDB.Ping(); err == nil {
+					slog.Debug("Database is up and running")
+					healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_SERVING)
+				} else {
+					slog.Error("Database is down", "error", err)
+					healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+				}
+			case <-stopHealth:
+				return
+			}
+		}
+	}()
+
+	grpcServer := grpc.NewServer()
+	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationHandler(database))
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+
+	reflection.Register(grpcServer)
 
 	go func() {
 		slog.Info("Starting grpc server", "address", "localhost:50051")
@@ -78,6 +118,9 @@ func main() {
 
 	<-sigChan
 	slog.Info("Shutdown signal received, shutting down gracefully...")
+
+	healthServer.Shutdown()
+	close(stopHealth)
 
 	grpcServer.GracefulStop()
 

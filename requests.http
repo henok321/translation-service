@@ -1,0 +1,15 @@
+### health check
+GRPC grpc://localhost:50051/grpc.health.v1.Health/Check
+Content-Type: application/json
+
+{
+  "service": "translation.v1.TranslationService"
+}
+
+### get translation by key and locale
+GRPC localhost:50051/proto.translation.v1.TranslationService/GetTranslationByKeyAndLocale
+
+{
+  "language_key": "hello",
+  "locale": "LOCALE_EN_GB"
+}
