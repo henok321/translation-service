@@ -7,10 +7,6 @@ GOOS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 OUTPUT := translation-service
 BUILD_FLAGS := -a -ldflags="-s -w -extldflags '-static'"
 CMD_DIR := ./cmd
-PROTOC_GEN_GO := $(shell go tool -n protoc-gen-go)
-PROTOC_GEN_GO_GRPC := $(shell go tool -n protoc-gen-go-grpc)
-PROTO_SRC_DIR := proto
-GO_OUT_DIR := pb
 
 all: help
 
@@ -27,14 +23,7 @@ check-deps:
 
 proto:
 	@echo "Generating protobuf model..."
-	@command rm -rf $(GO_OUT_DIR)
-	@command mkdir -p $(GO_OUT_DIR)
-	@command protoc -I $(PROTO_SRC_DIR) \
-	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
-	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
-	  --go_out=$(GO_OUT_DIR) --go_opt=paths=source_relative \
-	  --go-grpc_out=$(GO_OUT_DIR) --go-grpc_opt=paths=source_relative \
-	  $(shell find $(PROTO_SRC_DIR) -name '*.proto')
+	@command buf generate
 
 setup: check-deps
 	@echo "Setting up commit hooks and local database..."
@@ -48,7 +37,7 @@ reset:
 	@echo "Cleanup local docker database..."
 	docker compose down --volumes --remove-orphans
 	@echo "Delete generated protobuf sources ..."
-	rm -r pb
+	rm -r gen
 
 lint:
 	@echo "Running linter..."

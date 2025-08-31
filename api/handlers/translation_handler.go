@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
+	apiv1 "github.com/henok321/translation-service/gen/go/translation/v1"
 	"github.com/henok321/translation-service/pkg/translation"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

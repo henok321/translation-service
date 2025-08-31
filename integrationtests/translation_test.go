@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"testing"
 
-	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
+	apiv1 "github.com/henok321/translation-service/gen/go/translation/v1"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"

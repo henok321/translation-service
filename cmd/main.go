@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/henok321/translation-service/api/handlers"
-	apiv1 "github.com/henok321/translation-service/pb/translation/v1"
+	apiv1 "github.com/henok321/translation-service/gen/go/translation/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"

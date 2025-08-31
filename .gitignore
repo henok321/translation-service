@@ -12,7 +12,7 @@ go.work
 go.work.sum
 
 # protobuf
-pb
+gen
 
 # env file
 .env
