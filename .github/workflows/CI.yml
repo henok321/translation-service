@@ -40,10 +40,16 @@ jobs:
           go-version-file: go.mod
           check-latest: true
           cache-dependency-path: "**/go.sum"
+      - uses: bufbuild/buf-setup-action@v1
+        name: Setup Buf
+
+      - name: Install Go plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Generate proto files
         run: make proto
-
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
         with:
@@ -63,11 +69,19 @@ jobs:
           check-latest: true
           cache-dependency-path: "**/go.sum"
 
-      - name: Start Docker
-        run: sudo systemctl start docker
+      - uses: bufbuild/buf-setup-action@v1
+        name: Setup Buf
+
+      - name: Install Go plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Generate proto files
         run: make proto
+
+      - name: Start Docker
+        run: sudo systemctl start docker
 
       - name: Run Tests
         env:
