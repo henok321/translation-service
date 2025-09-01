@@ -17,7 +17,7 @@ type translationHandler struct {
 	repo translation.Repository
 }
 
-func NewTranslationHandler(db *gorm.DB) apiv1.TranslationServiceServer {
+func NewTranslationGRPCHandler(db *gorm.DB) apiv1.TranslationServiceServer {
 	return &translationHandler{repo: translation.NewRepository(db)}
 }
 

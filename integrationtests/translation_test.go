@@ -27,7 +27,7 @@ func TestTranslation(t *testing.T) {
 
 	executeSQLFile(t, db, "./test_data/get_translations.sql")
 
-	client, teardownServer := setupTestServer()
+	client, teardownServer := setupTestGRPCServer()
 
 	defer teardownServer()
 

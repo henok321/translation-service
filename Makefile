@@ -25,6 +25,10 @@ proto:
 	@echo "Generating protobuf model..."
 	@command buf generate
 
+openapi:
+	@echo "Generate openapi spec ..."
+	@command go tool oapi-codegen --config=cfg.yaml api.yaml
+
 setup: check-deps
 	@echo "Setting up commit hooks and local database..."
 	./scripts/setup.sh

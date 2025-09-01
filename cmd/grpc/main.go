@@ -102,7 +102,7 @@ func main() {
 	}()
 
 	grpcServer := grpc.NewServer()
-	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationHandler(database))
+	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationGRPCHandler(database))
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
 
 	reflection.Register(grpcServer)

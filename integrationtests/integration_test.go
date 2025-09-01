@@ -49,7 +49,7 @@ func runGooseUp(t *testing.T, db *sql.DB) {
 	}
 }
 
-func setupTestServer() (apiv1.TranslationServiceClient, func()) {
+func setupTestGRPCServer() (apiv1.TranslationServiceClient, func()) {
 	url := os.Getenv("DATABASE_URL")
 	database, err := gorm.Open(pg.Open(url), &gorm.Config{})
 	if err != nil {
@@ -64,7 +64,7 @@ func setupTestServer() (apiv1.TranslationServiceClient, func()) {
 	}
 
 	grpcServer := grpc.NewServer()
-	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationHandler(database))
+	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationGRPCHandler(database))
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
