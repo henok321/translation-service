@@ -50,6 +50,31 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+	server := SetupRouter(database)
+
+	go func() {
+		slog.Info("Starting server", "address", ":8080")
+		if err := server.ListenAndServe(); err != nil {
+			slog.Error("Starting server failed", "error", err)
+			exitCode = 1
+			return
+		}
+	}()
+
+	<-sigChan
+	slog.Info("Shutdown signal received, shutting down gracefully...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("Main server shutdown failed", "error", err)
+	}
+
+	slog.Info("Servers exited")
+}
+
+func SetupRouter(database *gorm.DB) *http.Server {
 	translationHandler := handlers.NewTranslationRESTHandler(database)
 
 	router := api.HandlerWithOptions(translationHandler, api.StdHTTPServerOptions{
@@ -76,24 +101,5 @@ func main() {
 		IdleTimeout:  15 * time.Second,
 	}
 
-	go func() {
-		slog.Info("Starting server", "address", ":8080")
-		if err := server.ListenAndServe(); err != nil {
-			slog.Error("Starting server failed", "error", err)
-			exitCode = 1
-			return
-		}
-	}()
-
-	<-sigChan
-	slog.Info("Shutdown signal received, shutting down gracefully...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("Main server shutdown failed", "error", err)
-	}
-
-	slog.Info("Servers exited")
+	return server
 }

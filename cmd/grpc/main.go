@@ -70,6 +70,39 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+	stopHealth := SetupHealthServer(healthServer, database)
+
+	grpcServer := SetupGRPCServer(database, healthServer, lis)
+
+	<-sigChan
+	slog.Info("Shutdown signal received, shutting down gracefully...")
+
+	healthServer.Shutdown()
+	close(stopHealth)
+
+	grpcServer.GracefulStop()
+
+	slog.Info("Servers exited")
+}
+
+func SetupGRPCServer(database *gorm.DB, healthServer *health.Server, lis net.Listener) *grpc.Server {
+	grpcServer := grpc.NewServer()
+	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationGRPCHandler(database))
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+
+	reflection.Register(grpcServer)
+
+	go func() {
+		slog.Info("Starting grpc server", "address", "localhost:50051")
+		if err := grpcServer.Serve(lis); err != nil {
+			slog.Error("Starting grpc server failed", "error", err)
+			os.Exit(1)
+		}
+	}()
+	return grpcServer
+}
+
+func SetupHealthServer(healthServer *health.Server, database *gorm.DB) chan struct{} {
 	healthServer.SetServingStatus("translation.v1.TranslationService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 
 	stopHealth := make(chan struct{})
@@ -100,29 +133,5 @@ func main() {
 			}
 		}
 	}()
-
-	grpcServer := grpc.NewServer()
-	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationGRPCHandler(database))
-	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
-
-	reflection.Register(grpcServer)
-
-	go func() {
-		slog.Info("Starting grpc server", "address", "localhost:50051")
-		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("Starting grpc server failed", "error", err)
-			exitCode = 1
-			return
-		}
-	}()
-
-	<-sigChan
-	slog.Info("Shutdown signal received, shutting down gracefully...")
-
-	healthServer.Shutdown()
-	close(stopHealth)
-
-	grpcServer.GracefulStop()
-
-	slog.Info("Servers exited")
+	return stopHealth
 }
