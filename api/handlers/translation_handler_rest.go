@@ -5,9 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	api "github.com/henok321/translation-service/gen"
 	"github.com/henok321/translation-service/pkg/translation"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +25,8 @@ func (t TranslationRESTHandler) GetTranslationKey(w http.ResponseWriter, _ *http
 	locale, ok := parseLocale(*params.Locale)
 
 	if !ok {
-		locale = translation.LocaleENGB
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	translationEntity, err := t.repo.GetTranslationByKey(key, locale)
@@ -57,7 +60,8 @@ func (t TranslationRESTHandler) GetTranslations(w http.ResponseWriter, _ *http.R
 	locale, ok := parseLocale(*params.Locale)
 
 	if !ok {
-		locale = translation.LocaleENGB
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	translationEntities, err := t.repo.GetTranslations(locale)
@@ -85,6 +89,36 @@ func (t TranslationRESTHandler) GetTranslations(w http.ResponseWriter, _ *http.R
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		slog.Error("failed to encode response", "error", err)
 	}
+}
+
+func SetupRouter(database *gorm.DB) *http.Server {
+	translationHandler := NewTranslationRESTHandler(database)
+
+	router := api.HandlerWithOptions(translationHandler, api.StdHTTPServerOptions{
+		BaseURL: "/api/v1",
+		Middlewares: []api.MiddlewareFunc{
+			func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					slog.Info("Request received", "method", r.Method, "url", r.URL.String())
+					next.ServeHTTP(w, r)
+				})
+			},
+		},
+		ErrorHandlerFunc: func(w http.ResponseWriter, _ *http.Request, err error) {
+			slog.Error("Error handling request", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		},
+	})
+
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      cors.AllowAll().Handler(router),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	return server
 }
 
 func parseLocale(s string) (translation.Locale, bool) {

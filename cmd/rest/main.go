@@ -3,16 +3,12 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/rs/cors"
-
 	"github.com/henok321/translation-service/api/handlers"
-	api "github.com/henok321/translation-service/gen"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -50,7 +46,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	server := SetupRouter(database)
+	server := handlers.SetupRouter(database)
 
 	go func() {
 		slog.Info("Starting server", "address", ":8080")
@@ -72,34 +68,4 @@ func main() {
 	}
 
 	slog.Info("Servers exited")
-}
-
-func SetupRouter(database *gorm.DB) *http.Server {
-	translationHandler := handlers.NewTranslationRESTHandler(database)
-
-	router := api.HandlerWithOptions(translationHandler, api.StdHTTPServerOptions{
-		BaseURL: "/api/v1",
-		Middlewares: []api.MiddlewareFunc{
-			func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					slog.Info("Request received", "method", r.Method, "url", r.URL.String())
-					next.ServeHTTP(w, r)
-				})
-			},
-		},
-		ErrorHandlerFunc: func(w http.ResponseWriter, _ *http.Request, err error) {
-			slog.Error("Error handling request", "error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		},
-	})
-
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      cors.AllowAll().Handler(router),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  15 * time.Second,
-	}
-
-	return server
 }

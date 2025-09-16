@@ -4,18 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-	"net"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
-
-	"github.com/henok321/translation-service/api/handlers"
-	apiv1 "github.com/henok321/translation-service/gen/go/translation/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	pg "gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
@@ -47,49 +39,6 @@ func runGooseUp(t *testing.T, db *sql.DB) {
 	if err := goose.Up(db, migrationsDir); err != nil {
 		t.Fatalf("goose failed to run migrations: %v", err)
 	}
-}
-
-func setupTestGRPCServer() (apiv1.TranslationServiceClient, func()) {
-	url := os.Getenv("DATABASE_URL")
-	database, err := gorm.Open(pg.Open(url), &gorm.Config{})
-	if err != nil {
-		slog.Error("Starting application failed, cannot start connect to database", "error", err)
-		os.Exit(1)
-	}
-
-	lis, err := net.Listen("tcp", "localhost:50051")
-	if err != nil {
-		slog.Error("Starting application failed, cannot listen on port", "error", err)
-		os.Exit(1)
-	}
-
-	grpcServer := grpc.NewServer()
-	apiv1.RegisterTranslationServiceServer(grpcServer, handlers.NewTranslationGRPCHandler(database))
-
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			slog.Error("Starting application failed, cannot start grpc server", "error", err)
-			os.Exit(1)
-		}
-	}()
-
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		slog.Error("Failed to connect to gRPC server", "error", err)
-		os.Exit(1)
-	}
-
-	client := apiv1.NewTranslationServiceClient(conn)
-
-	teardown := func() {
-		err := conn.Close()
-		if err != nil {
-			slog.Error("Closing connection failed", "error", err)
-		}
-		grpcServer.GracefulStop()
-	}
-
-	return client, teardown
 }
 
 func setupTestDatabase(t *testing.T) (string, func()) {
