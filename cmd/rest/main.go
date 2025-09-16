@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/henok321/translation-service/api/handlers"
+	"github.com/rs/cors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -46,7 +48,15 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	server := handlers.SetupRouter(database)
+	router := handlers.SetupRouter(database)
+
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      cors.AllowAll().Handler(router),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
 
 	go func() {
 		slog.Info("Starting server", "address", ":8080")

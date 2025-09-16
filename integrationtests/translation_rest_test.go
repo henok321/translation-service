@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/henok321/translation-service/api/handlers"
 	api "github.com/henok321/translation-service/gen"
@@ -18,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestRESTServer() (client *api.Client, teardown func()) {
+func setupTestRESTServer() (server *httptest.Server, client *api.Client, teardown func(*httptest.Server)) {
 	url := os.Getenv("DATABASE_URL")
 	database, err := gorm.Open(pg.Open(url), &gorm.Config{})
 	if err != nil {
@@ -26,28 +27,22 @@ func setupTestRESTServer() (client *api.Client, teardown func()) {
 		os.Exit(1)
 	}
 
-	server := handlers.SetupRouter(database)
+	router := handlers.SetupRouter(database)
 
-	go func() {
-		slog.Info("Starting server", "address", ":8080")
-		if err := server.ListenAndServe(); err != nil {
-			slog.Error("Starting server failed", "error", err)
-			os.Exit(1)
-		}
-	}()
-
-	client, err = api.NewClient("http://localhost:8080/api/v1")
-
-	teardown = func() {
-		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err = server.Shutdown(timeout)
-		if err != nil {
-			slog.Error("Main server shutdown failed", "error", err)
-		}
+	server = httptest.NewServer(router)
+	teardown = func(*httptest.Server) {
+		server.Close()
 	}
 
-	return client, teardown
+	slog.Info("Starting application", "url", server.URL)
+
+	client, err = api.NewClient(fmt.Sprintf("%s/api/v1", server.URL))
+	if err != nil {
+		slog.Error("Failed to create client", "error", err)
+		os.Exit(1)
+	}
+
+	return server, client, teardown
 }
 
 func TestTranslationREST(t *testing.T) {
@@ -65,9 +60,9 @@ func TestTranslationREST(t *testing.T) {
 
 	executeSQLFile(t, db, "./test_data/get_translations.sql")
 
-	client, teardownServer := setupTestRESTServer()
+	server, client, teardownServer := setupTestRESTServer()
 
-	defer teardownServer()
+	defer teardownServer(server)
 
 	testCases := map[string]struct {
 		languageKey string
@@ -103,6 +98,7 @@ func TestTranslationREST(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to get translation: %v", err)
 			}
+			defer result.Body.Close()
 
 			if tc.expectedErr != result.StatusCode {
 				t.Fatalf("Expected status code %d, got %d", tc.expectedErr, result.StatusCode)

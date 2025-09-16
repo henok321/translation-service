@@ -5,11 +5,9 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"time"
 
 	api "github.com/henok321/translation-service/gen"
 	"github.com/henok321/translation-service/pkg/translation"
-	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -91,7 +89,7 @@ func (t TranslationRESTHandler) GetTranslations(w http.ResponseWriter, _ *http.R
 	}
 }
 
-func SetupRouter(database *gorm.DB) *http.Server {
+func SetupRouter(database *gorm.DB) http.Handler {
 	translationHandler := NewTranslationRESTHandler(database)
 
 	router := api.HandlerWithOptions(translationHandler, api.StdHTTPServerOptions{
@@ -109,16 +107,7 @@ func SetupRouter(database *gorm.DB) *http.Server {
 			w.WriteHeader(http.StatusInternalServerError)
 		},
 	})
-
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      cors.AllowAll().Handler(router),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  15 * time.Second,
-	}
-
-	return server
+	return router
 }
 
 func parseLocale(s string) (translation.Locale, bool) {
