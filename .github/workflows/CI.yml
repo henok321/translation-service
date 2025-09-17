@@ -81,6 +81,9 @@ jobs:
       - name: Generate proto files
         run: make proto
 
+      - name: Generate openapi spec and client
+        run: make openapi
+
       - name: Start Docker
         run: sudo systemctl start docker
 
