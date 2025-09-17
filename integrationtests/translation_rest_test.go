@@ -64,7 +64,21 @@ func TestTranslationREST(t *testing.T) {
 
 	defer teardownServer(server)
 
-	testCases := map[string]struct {
+	getTranslations := map[string]struct {
+		locale      string
+		expectedErr int
+	}{
+		"valid locale": {
+			locale:      "en_GB",
+			expectedErr: 200,
+		},
+		"invalid locale": {
+			locale:      "fr-FR",
+			expectedErr: 400,
+		},
+	}
+
+	getTranslationBeyKey := map[string]struct {
 		languageKey string
 		locale      string
 		expectedErr int
@@ -91,7 +105,36 @@ func TestTranslationREST(t *testing.T) {
 		},
 	}
 
-	for name, tc := range testCases {
+	for name, tc := range getTranslations {
+		t.Run(name, func(t *testing.T) {
+			locale := tc.locale
+			result, err := client.GetTranslations(context.Background(), &api.GetTranslationsParams{Locale: &locale})
+			if err != nil {
+				t.Fatalf("Failed to get translations: %v", err)
+			}
+			defer result.Body.Close()
+
+			if tc.expectedErr != result.StatusCode {
+				t.Fatalf("Expected status code %d, got %d", tc.expectedErr, result.StatusCode)
+			}
+
+			if result.StatusCode != 200 {
+				return
+			}
+
+			var body []api.Translation
+			err = json.NewDecoder(result.Body).Decode(&body)
+			if err != nil {
+				t.Fatalf("Failed to decode response body: %v", err)
+			}
+
+			require.NoError(t, err, "Failed to get translations")
+
+			assert.Len(t, body, 2)
+		})
+	}
+
+	for name, tc := range getTranslationBeyKey {
 		t.Run(name, func(t *testing.T) {
 			locale := tc.locale
 			result, err := client.GetTranslationKey(context.Background(), tc.languageKey, &api.GetTranslationKeyParams{Locale: &locale})
