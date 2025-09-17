@@ -43,7 +43,7 @@ reset:
 	@echo "Delete generated protobuf sources ..."
 	rm -r gen
 
-lint:
+lint: proto openapi
 	@echo "Running linter..."
 	pre-commit run --all-files
 
@@ -54,15 +54,6 @@ update:
 	go get -u ./...
 	go mod tidy
 
-test:
+test: proto openapi
 	@echo "Running tests..."
 	go test -v ./...
-
-build: proto
-	@echo "Building the service..."
-	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=$(GOOS) go build $(BUILD_FLAGS) -o $(OUTPUT) $(CMD_DIR)/
-
-clean:
-	@echo "Cleaning build artifacts..."
-	go clean
-	@rm -f $(OUTPUT)
