@@ -18,8 +18,8 @@ until docker exec translation-service-db-1 pg_isready -h localhost -p 5432; do
 	sleep 2
 done
 
-goose validate
-goose up
+go tool goose validate
+go tool goose up
 
 echo "Init .env..."
 
