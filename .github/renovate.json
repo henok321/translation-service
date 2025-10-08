@@ -41,6 +41,13 @@
         "indirect"
       ],
       "enabled": false
+    },
+    {
+      "matchManagers": [
+        "pre-commit"
+      ],
+      "allowedVersions": "!/(?:alpha|beta|rc|pre|dev|snapshot)/i",
+      "description": "Exclude pre-release versions from pre-commit hook updates"
     }
   ]
 }

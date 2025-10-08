@@ -23,7 +23,7 @@ check-deps:
 
 proto:
 	@echo "Generating protobuf model..."
-	@command buf generate
+	@command go tool buf generate
 
 openapi:
 	@echo "Generate openapi spec ..."
