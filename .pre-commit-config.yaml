@@ -21,7 +21,7 @@ repos:
       - id: forbid-submodules
       - id: check-added-large-files
   - repo: https://github.com/bufbuild/buf
-    rev: v1.63.0
+    rev: v1.64.0
     hooks:
       - id: buf-lint
       - id: buf-format
